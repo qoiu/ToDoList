@@ -3,50 +3,60 @@ package com.github.qoiu.todolist.presentation.task
 import androidx.lifecycle.viewModelScope
 import com.github.qoiu.todolist.Communication
 import com.github.qoiu.todolist.domain.TaskInteractor
-import com.github.qoiu.todolist.domain.entities.CategoryData
+import com.github.qoiu.todolist.domain.entities.TaskData
 import com.github.qoiu.todolist.presentation.BaseViewModel
 import com.github.qoiu.todolist.presentation.NewElement
 import com.github.qoiu.todolist.presentation.entity.ListUi
-import com.github.qoiu.todolist.presentation.entity.ResultListToUiMapper
+import com.github.qoiu.todolist.presentation.entity.ResultTaskToUiMapper
 import com.github.qoiu.todolist.presentation.entity.UiElement
 import com.github.qoiu.todolist.presentation.entity.UiElementToDomainMapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class ToDoListViewModel(
+class ToDoTaskViewModel(
     communication: Communication<ListUi>,
     private val interactor: TaskInteractor
 ) : BaseViewModel<ListUi>(communication), NewElement {
 
-    fun getAllUserList() {
+    var listId: Int = -1
+
+    fun isCategory(): Boolean = (listId == -1)
+
+    fun getAllTasks(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val result = interactor.getAllLists()
+            val result = interactor.getAllTask(id)
             withContext(Dispatchers.Main) {
-                provide(result.map(ResultListToUiMapper()))
+                val map = result.map<ListUi>(ResultTaskToUiMapper())
+                provide(map)
             }
         }
     }
 
-    fun update(data: UiElement.Category) {
+
+    fun update(data: UiElement.Task) {
         viewModelScope.launch(Dispatchers.IO) {
-            interactor.update(data.map<CategoryData>(UiElementToDomainMapper.Category()))
+            interactor.update(data.map<TaskData>(UiElementToDomainMapper.Task()))
         }
     }
 
-    fun delete(data: UiElement.Category) {
+    fun delete(data: UiElement.Task) {
         viewModelScope.launch(Dispatchers.IO) {
-            interactor.delete(data.map<CategoryData>(UiElementToDomainMapper.Category()))
+            interactor.delete(data.map<TaskData>(UiElementToDomainMapper.Task()))
         }.invokeOnCompletion {
-            getAllUserList()
+            getAllTasks(listId)
         }
     }
 
     override fun create(data: UiElement) {
         viewModelScope.launch(Dispatchers.IO) {
-            interactor.create(CategoryData(0, "New category", false, 0.0))
-        }.invokeOnCompletion {
-            getAllUserList()
-        }
+            interactor.create(TaskData(0, "", listId, "new task", false))
+        }.invokeOnCompletion { getAllTasks(listId) }
+    }
+
+    fun complete(data: UiElement.Task) {
+        viewModelScope.launch(Dispatchers.IO) {
+            interactor.complete(data.map(UiElementToDomainMapper.Task()))
+        }.invokeOnCompletion { getAllTasks(listId) }
     }
 }

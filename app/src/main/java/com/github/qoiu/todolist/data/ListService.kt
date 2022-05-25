@@ -1,17 +1,23 @@
 package com.github.qoiu.todolist.data
 
-import com.github.qoiu.todolist.domain.entities.TaskResult
+import com.google.gson.annotations.SerializedName
 import okhttp3.ResponseBody
 import retrofit2.Response
-import retrofit2.http.GET
-import retrofit2.http.Query
+import retrofit2.http.*
 
 interface ListService {
 
     @GET("lists/")
     suspend fun fetchList(): Response<ResponseBody>
 
-    @GET("tasks/")
-    suspend fun tasks(@Query("todo_list") list: Int): List<TaskResult>
+    @POST("lists/")
+    suspend fun create(@Body name: Name)
 
+    @PUT("lists/{id}/")
+    suspend fun update(@Path("id") id: Int, @Body name: Name)
+
+    @DELETE("lists/{id}/")
+    suspend fun delete(@Path("id") id: Int)
+
+    class Name(@SerializedName("name") val name: String)
 }

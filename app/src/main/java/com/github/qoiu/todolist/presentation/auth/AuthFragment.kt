@@ -5,10 +5,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.github.qoiu.todolist.R
 import com.github.qoiu.todolist.databinding.FragmentAuthBinding
 import com.github.qoiu.todolist.domain.entities.AuthResult
 import com.github.qoiu.todolist.presentation.BaseFragment
-import com.github.qoiu.todolist.presentation.MainActivity
+import com.github.qoiu.todolist.presentation.main.MainActivity
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AuthFragment : BaseFragment<FragmentAuthBinding>() {
@@ -18,6 +19,7 @@ class AuthFragment : BaseFragment<FragmentAuthBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        changeTitle(R.string.authorization)
         viewModel.observe(this) {
             if (it is AuthResult.Error) {
                 Toast.makeText(requireContext(), it.detail, Toast.LENGTH_SHORT).show()

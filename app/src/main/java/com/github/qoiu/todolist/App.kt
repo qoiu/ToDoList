@@ -2,14 +2,13 @@ package com.github.qoiu.todolist
 
 import android.app.Application
 import com.github.qoiu.todolist.data.*
-import com.github.qoiu.todolist.domain.AuthInteractor
-import com.github.qoiu.todolist.domain.AuthRepository
-import com.github.qoiu.todolist.domain.Repository
-import com.github.qoiu.todolist.domain.TaskInteractor
-import com.github.qoiu.todolist.domain.entities.ListResult
+import com.github.qoiu.todolist.domain.*
 import com.github.qoiu.todolist.domain.entities.TokenAuthenticator
+import com.github.qoiu.todolist.presentation.main.MainActivityViewModel
 import com.github.qoiu.todolist.presentation.auth.AuthViewModel
+import com.github.qoiu.todolist.presentation.task.TaskViewModel
 import com.github.qoiu.todolist.presentation.task.ToDoListViewModel
+import com.github.qoiu.todolist.presentation.task.ToDoTaskViewModel
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -27,8 +26,8 @@ class App : Application() {
         super.onCreate()
 
         val appModule = module {
-            factory<Repository<ListResult>> {
-                BaseTaskRepository(
+            factory<CategoryRepository> {
+                BaseListRepository(
                     configRetrofit(
                         ListService::class.java,
                         get(),
@@ -36,7 +35,16 @@ class App : Application() {
                     )
                 )
             }
-            factory { }
+            factory<TaskRepository> {
+                BaseTaskRepository(
+                    configRetrofit(
+                        TaskService::class.java,
+                        get(),
+                        "todo/"
+                    )
+                )
+            }
+            factory<TaskInteractor> { TaskInteractor.Base(get(), get()) }
             single { TokenAuthenticator() }
             single<AuthRepository> {
                 BaseAuthRepository(
@@ -48,9 +56,11 @@ class App : Application() {
                 )
             }
             single<AuthInteractor> { AuthInteractor.Base(get(), get()) }
-            factory<TaskInteractor> { TaskInteractor.Base(get()) }
+            single { ToDoListViewModel(Communication.Base(), get()) }
+            single { ToDoTaskViewModel(Communication.Base(), get()) }
+            viewModel { MainActivityViewModel(Communication.Base()) }
             viewModel { AuthViewModel(get(), Communication.Base()) }
-            viewModel { ToDoListViewModel(Communication.Base(), get()) }
+            viewModel { TaskViewModel(Communication.Base(), get(), get()) }
         }
 
         startKoin {
@@ -77,12 +87,14 @@ class App : Application() {
 
 
         val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor( if (token.hasToken())interceptor else httpLoggingInterceptor)
-            .build()
+            .addInterceptor(httpLoggingInterceptor)
+        if (token.hasToken())
+            okHttpClient.addInterceptor(interceptor)
+
 
         val retrofit = Retrofit.Builder()
             .baseUrl("http://dev1.itpw.ru:8013/$extraPath")
-            .client(okHttpClient)
+            .client(okHttpClient.build())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

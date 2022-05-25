@@ -1,5 +1,7 @@
 package com.github.qoiu.todolist.domain
 
-interface Repository<T> {
-    suspend fun fetchData():T
+interface Repository<Data> {
+    suspend fun createData(data: Data)
+    suspend fun updateData(data: Data)
+    suspend fun deleteData(data: Data)
 }

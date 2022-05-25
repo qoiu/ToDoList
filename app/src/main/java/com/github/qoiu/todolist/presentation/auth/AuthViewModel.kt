@@ -12,9 +12,9 @@ import kotlinx.coroutines.withContext
 class AuthViewModel(
     private val interactor: AuthInteractor,
     communication: Communication<AuthResult>
-): BaseViewModel<Communication.Base<AuthResult>, AuthResult>(communication) {
+) : BaseViewModel<AuthResult>(communication) {
 
-    fun login(login: String, password: String){
+    fun login(login: String, password: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val result = interactor.login(login, password)
             withContext(Dispatchers.Main) {
@@ -22,8 +22,9 @@ class AuthViewModel(
             }
         }
     }
-    fun registration(login: String, password: String){
-        if(password.isBlank()){
+
+    fun registration(login: String, password: String) {
+        if (password.isBlank()) {
             provide(AuthResult.Error("Password is blank"))
             return
         }

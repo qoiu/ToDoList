@@ -4,4 +4,10 @@
     <string name="password">пароль</string>
     <string name="log_in">Войти</string>
     <string name="sign_in">Регистрация</string>
+    <string name="delete">delete</string>
+    <string name="new_element">NewElement</string>
+    <string name="back">back</string>
+    <string name="complete">complete</string>
+    <string name="authorization">Authorization</string>
+    <string name="categories">Categories</string>
 </resources>
